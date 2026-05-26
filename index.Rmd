@@ -1,0 +1,365 @@
+---
+title: "Analisis Hubungan Rental Duration terhadap Popularitas dan Revenue Film pada Database Sakila"
+author: "Fariska Ziadatun Ni'mah | M0725064 | SIM-D"
+date: "2026-05-25"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+css: style.css
+---
+
+# Pendahuluan
+
+Database Sakila merupakan database contoh dari MySQL yang menggambarkan sistem rental film. Database ini memiliki berbagai tabel transaksi yang dapat digunakan untuk melakukan analisis data bisnis.
+Dalam bisnis rental film, rental duration atau lama waktu peminjaman film menjadi salah satu aspek yang dapat dianalisis untuk melihat keterkaitannya dengan jumlah penyewaan film dan revenue perusahaan.
+
+# Insight yang Diambil
+
+::: {.box-insight}
+
+“Rental duration tertentu menunjukkan jumlah rental dan revenue yang berbeda-beda pada sistem rental film.”
+
+:::
+
+Insight ini dipilih untuk melihat keterkaitan antara rental duration dengan jumlah rental dan revenue film pada sistem rental film.
+
+# Data
+
+Data yang digunakan berasal dari tabel:
+
+- film
+
+- inventory
+
+- rental
+
+- payment
+
+## Library yang Digunakan
+
+```{r setup, message=FALSE, warning=FALSE}
+library(DBI)
+library(RMySQL)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+```
+
+```{r, include=FALSE}
+pwd = "r0vErk41xoxo"
+```
+## Koneksi Database
+
+```{r}
+con <- dbConnect(
+  RMySQL::MySQL(),
+  dbname = "sakila",
+  host = "localhost",
+  port = 3306,
+  user = "root",
+  password = pwd
+)
+```
+
+## Query SQL
+
+```{r, warning=FALSE}
+query <- "
+SELECT
+    f.title,
+    f.rental_duration,
+    COUNT(r.rental_id) AS total_rental,
+    ROUND(SUM(p.amount),2) AS total_revenue
+FROM film f
+JOIN inventory i
+    ON f.film_id = i.film_id
+JOIN rental r
+    ON i.inventory_id = r.inventory_id
+JOIN payment p
+    ON r.rental_id = p.rental_id
+GROUP BY f.title, f.rental_duration
+ORDER BY total_rental DESC
+"
+
+film_data <- dbGetQuery(con, query)
+
+head(film_data)
+```
+
+## Struktur Data
+
+```{r}
+str(film_data)
+```
+
+## Statistik Deskriptif
+
+```{r}
+summary(film_data)
+```
+
+## Tampilan Dataset
+
+```{r}
+kable(
+  head(film_data,10),
+  caption = "Dataset Rental Duration Film"
+) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped","hover","condensed")
+  )
+```
+
+# Persamaan Korelasi Pearson
+
+Hubungan antara rental duration dan total rental dianalisis menggunakan korelasi Pearson berikut:
+
+$$
+r = \frac{\sum (x_i-\bar{x})(y_i-\bar{y})}
+{\sqrt{\sum (x_i-\bar{x})^2 \sum (y_i-\bar{y})^2}}
+$$
+
+# Visualisasi 1 — Total Rental Berdasarkan Rental Duration
+
+```{r}
+duration_rental <- film_data %>%
+  group_by(rental_duration) %>%
+  summarise(
+    total_rental = sum(total_rental)
+  )
+
+ggplot(
+  duration_rental,
+  aes(
+    x = total_rental,
+    y = factor(rental_duration),
+    fill = total_rental
+  )
+) +
+
+  geom_col() +
+
+  scale_fill_gradient(
+    low = "#DDB892",
+    high = "#7F5539"
+  ) +
+
+  labs(
+    title = "Total Rental Berdasarkan Rental Duration",
+    subtitle = "Perbandingan Popularitas Rental Duration",
+    x = "Total Rental",
+    y = "Rental Duration (Hari)"
+  ) +
+
+  theme_minimal(base_size = 13) +
+
+  theme(
+    plot.background = element_rect(
+      fill = "#FAF7F2",
+      color = NA
+    ),
+
+    panel.background = element_rect(
+      fill = "#FAF7F2"
+    ),
+
+    text = element_text(
+      color = "#5B4636"
+    ),
+
+    axis.text = element_text(
+      color = "#5B4636"
+    ),
+
+    plot.title = element_text(
+      face = "bold",
+      size = 16,
+      color = "#9C6644"
+    ),
+
+    plot.subtitle = element_text(
+      color = "#7F5539"
+    ),
+
+    legend.background = element_rect(
+      fill = "#FAF7F2"
+    ),
+
+    legend.key = element_rect(
+      fill = "#FAF7F2"
+    )
+  )
+```
+
+## Interpretasi Visualisasi 1
+
+Visualisasi menunjukkan total rental berdasarkan durasi peminjaman film. Durasi rental 3 hari memiliki total rental paling tinggi sehingga menjadi pilihan yang paling sering digunakan pelanggan, sedangkan durasi 7 hari memiliki total rental paling rendah. Hal itu menunjukkan bahwa pelanggan cenderung memilih durasi peminjaman yang dirasa lebih pas dan fleksibel untuk kebutuhan mereka.
+
+---
+
+# Visualisasi 2 — Revenue Berdasarkan Rental Duration
+
+```{r}
+duration_revenue <- film_data %>%
+  group_by(rental_duration) %>%
+  summarise(
+    total_revenue = sum(total_revenue)
+  )
+
+ggplot(
+  duration_revenue,
+  aes(
+    x = reorder(
+      factor(rental_duration),
+      total_revenue
+    ),
+    y = total_revenue
+  )
+) +
+
+  geom_col(
+    fill = "#DDA15E",
+    width = 0.7
+  ) +
+
+  labs(
+    title = "Revenue Berdasarkan Rental Duration",
+    subtitle = "Total Revenue pada Setiap Rental Duration",
+    x = "Rental Duration (Hari)",
+    y = "Total Revenue"
+  ) +
+
+  theme_minimal(base_size = 13) +
+
+  theme(
+    plot.background = element_rect(
+      fill = "#FAF7F2",
+      color = NA
+    ),
+
+    panel.background = element_rect(
+      fill = "#FAF7F2"
+    ),
+
+    text = element_text(
+      color = "#5B4636"
+    ),
+
+    axis.text = element_text(
+      color = "#5B4636"
+    ),
+
+    plot.title = element_text(
+      face = "bold",
+      size = 16,
+      color = "#9C6644"
+    ),
+
+    plot.subtitle = element_text(
+      color = "#7F5539"
+    )
+  )
+```
+
+## Interpretasi Visualisasi 2
+
+Visualisasi menunjukkan total revenue yang dihasilkan berdasarkan durasi peminjaman film. Rental duration 3 hari menghasilkan total revenue tertinggi, sedangkan rental duration 7 hari menghasilkan revenue terendah. Hal ini menunjukkan bahwa durasi peminjaman yang lebih singkat cenderung lebih sering dipilih pelanggan sehingga memberikan kontribusi pendapatan yang lebih besar bagi perusahaan.
+
+---
+
+# Visualisasi 3 — Hubungan Total Rental dan Revenue
+
+```{r}
+ggplot(
+  film_data,
+  aes(
+    x = total_rental,
+    y = total_revenue,
+    color = factor(rental_duration)
+  )
+) +
+
+  geom_point(
+    size = 3,
+    alpha = 0.8
+  ) +
+
+  scale_color_manual(
+    values = c(
+      "#DDB892",
+      "#CB997E",
+      "#BC6C25",
+      "#9C6644",
+      "#7F5539"
+    )
+  ) +
+
+  labs(
+    title = "Hubungan Total Rental dan Revenue",
+    subtitle = "Analisis Popularitas dan Revenue Film",
+    x = "Total Rental",
+    y = "Total Revenue",
+    color = "Rental Duration"
+  ) +
+
+  theme_minimal(base_size = 13) +
+
+  theme(
+
+    plot.background = element_rect(
+      fill = "#FAF7F2",
+      color = NA
+    ),
+
+    panel.background = element_rect(
+      fill = "#FAF7F2"
+    ),
+
+    text = element_text(
+      color = "#5B4636"
+    ),
+
+    axis.text = element_text(
+      color = "#5B4636"
+    ),
+
+    plot.title = element_text(
+      face = "bold",
+      size = 16,
+      color = "#9C6644"
+    ),
+
+    plot.subtitle = element_text(
+      color = "#7F5539"
+    )
+  )
+```
+
+## Interpretasi Visualisasi 3
+
+Scatter plot menunjukkan hubungan antara total rental dan total revenue film berdasarkan rental duration. Grafik memperlihatkan bahwa film dengan jumlah rental yang lebih tinggi cenderung menghasilkan revenue yang lebih besar, sehingga terdapat hubungan positif antara popularitas film dan pendapatan yang diperoleh perusahaan. Perbedaan warna pada titik menunjukkan variasi rental duration, namun pola persebarannya relatif serupa. Hal ini menunjukkan bahwa peningkatan jumlah rental lebih berpengaruh terhadap kenaikan revenue dibandingkan perbedaan durasi peminjaman film.
+
+# Analisis Korelasi
+
+```{r}
+cor.test(
+  film_data$rental_duration,
+  film_data$total_rental
+)
+```
+
+## Interpretasi Korelasi
+
+Nilai korelasi digunakan untuk melihat hubungan antara rental duration dan total rental film. Hasil analisis menunjukkan nilai korelasi sebesar -0,061 yang berarti hubungan antara kedua variabel sangat lemah dan cenderung tidak signifikan. Tanda negatif menunjukkan arah hubungan yang berlawanan, namun nilainya yang mendekati 0 menandakan pengaruhnya hampir tidak ada. Hal ini menunjukkan bahwa lama waktu peminjaman film tidak terlalu memengaruhi jumlah rental film, sehingga film dengan durasi rental lebih lama belum tentu lebih sering dirental pelanggan.
+
+# Kesimpulan
+
+Berdasarkan hasil analisis pada database Sakila, dapat disimpulkan bahwa beberapa rental duration memiliki jumlah rental dan revenue yang berbeda-beda. Rental duration 3 hari menunjukkan total rental dan revenue tertinggi, sedangkan durasi 7 hari memiliki nilai terendah.
+
+Visualisasi hubungan total rental dan total revenue menunjukkan adanya hubungan positif, yaitu film dengan jumlah rental tinggi cenderung menghasilkan revenue yang lebih besar. Hal ini menunjukkan bahwa popularitas film berkontribusi terhadap peningkatan pendapatan perusahaan.
+
+Namun, hasil analisis korelasi menunjukkan bahwa hubungan antara rental duration dan total rental sangat lemah, sehingga lama waktu peminjaman tidak terlalu memengaruhi banyaknya film yang dirental pelanggan. Secara keseluruhan, analisis ini dapat membantu perusahaan rental film dalam memahami pola peminjaman pelanggan dan menyusun strategi bisnis yang lebih optimal.

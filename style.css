@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  font-family: "Poppins", sans-serif;
+  line-height: 1.8;
+  text-align: justify;
+  background: linear-gradient(to bottom, #FAF7F2, #F8F1E9);
+  color: #5B4636;
+  padding-bottom: 50px;
+}
+
+/* ===== TITLE ===== */
+
+.title{
+  background: linear-gradient(135deg, #9C6644, #BC6C25, #DDA15E);
+  background-size: 300% 300%;
+  animation: gradientMove 8s ease infinite;
+  color: white;
+  padding: 28px;
+  border-radius: 22px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(188,108,37,0.25);
+  margin-bottom: 30px;
+}
+
+.author, .date{
+  text-align:center;
+  color:#7F5539;
+}
+
+/* ===== ANIMATION ===== */
+
+@keyframes gradientMove{
+  0%{
+    background-position:0% 50%;
+  }
+  50%{
+    background-position:100% 50%;
+  }
+  100%{
+    background-position:0% 50%;
+  }
+}
+
+/* ===== HEADINGS ===== */
+
+h1{
+  color:#7F5539;
+  font-weight:700;
+  margin-top:35px;
+  margin-bottom:18px;
+  padding-bottom:10px;
+  border-bottom:4px solid #DDA15E;
+  position:relative;
+}
+
+h1::after{
+  content:"";
+  position:absolute;
+  bottom:-4px;
+  left:0;
+  width:80px;
+  height:4px;
+  background:#9C6644;
+  border-radius:10px;
+}
+
+h2{
+  color:#9C6644;
+  margin-top:28px;
+  background: linear-gradient(to right,#FFF8F0,#F8F1E9);
+  padding:10px 15px;
+  border-radius:12px;
+}
+
+h3{
+  color:#5B4636;
+  margin-top:22px;
+}
+
+/* ===== CODE CHUNK ===== */
+
+pre.sourceCode{
+  background:#7F5539 !important;
+  color:#FAF7F2 !important;
+  border-radius:16px;
+  padding:16px;
+  overflow-x:auto;
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+  border-left:5px solid #DDA15E;
+}
+
+pre{
+  background:#FFFDF9;
+  color:#5B4636;
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  border-left:5px solid #CB997E;
+}
+
+/* ===== INLINE CODE ===== */
+
+code{
+  color:#BC6C25;
+  font-weight:500;
+}
+
+/* ===== TABLE ===== */
+
+table{
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+thead{
+  background: linear-gradient(90deg,#BC6C25,#DDA15E);
+  color:white;
+}
+
+/* ===== TOC ===== */
+
+#TOC{
+  background:white;
+  border-radius:18px;
+  padding:15px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+#TOC a{
+  color:#7F5539;
+  text-decoration:none;
+}
+
+/* ===== BOX ===== */
+
+.box-insight{
+  background: linear-gradient(135deg,#FFF8F0,#F8F1E9);
+  border-left:6px solid #BC6C25;
+  border-radius:18px;
+  padding:18px 22px;
+  margin:20px 0;
+  box-shadow:0 6px 18px rgba(188,108,37,0.15);
+}
+
+/* ===== IMAGE ===== */
+
+img{
+  border-radius:18px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.12);
+}
